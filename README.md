@@ -18,7 +18,7 @@ For inference with pre-trained models, please refer to:
 ./inference.sh
 ```
 
-Two pre-trained model is included at `./SE_AGCNet/ckpt`.
+Two pre-trained models are included at `./SE_AGCNet/ckpt`.
 
 ### Data Generation
 
