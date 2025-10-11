@@ -1,5 +1,10 @@
 # SE-AGCNet
 
+## Dataset
+
+The VoiceBankAGC dataset can be downloaded from:
+[VoiceBankAGC](https://entuedu-my.sharepoint.com/:f:/r/personal/ccds-jmzhang_assoc_main_ntu_edu_sg/Documents/VoiceBankAGC?csf=1&web=1&e=gDmYcd)
+
 ## Quick Start
 
 ### Training
