@@ -495,7 +495,6 @@ def main():
     torch.manual_seed(h.seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed(h.seed)
-        h.num_gpus = torch.cuda.device_count()
         h.batch_size = int(h.batch_size / h.num_gpus)
         print('Batch size per GPU :', h.batch_size)
     
