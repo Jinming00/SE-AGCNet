@@ -3,7 +3,7 @@
 ## Dataset
 
 The VoiceBankAGC dataset can be downloaded from:
-[VoiceBankAGC](https://entuedu-my.sharepoint.com/:f:/r/personal/ccds-jmzhang_assoc_main_ntu_edu_sg/Documents/VoiceBankAGC?csf=1&web=1&e=gDmYcd)
+[VoiceBankAGC](https://drive.google.com/drive/folders/12naNULZmxpUD7x06fQmLgCZXuH6-qxgD?usp=sharing)
 
 ## Quick Start
 
