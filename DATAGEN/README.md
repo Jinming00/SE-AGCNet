@@ -17,6 +17,8 @@ pip install numpy librosa soundfile tqdm pandas
 
 ### LibriTTS
 
+Download the original dataset from https://www.openslr.org/60/
+
 Set data directory:
 ```bash
 export LIBRITTS_BASE_DIR=/path/to/your/data
