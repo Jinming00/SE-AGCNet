@@ -22,15 +22,14 @@ from collections import defaultdict
 import random
 import json
 import pandas as pd
+import argparse
 
 # Global random seed for reproducibility
 GLOBAL_RANDOM_SEED = 42
 random.seed(GLOBAL_RANDOM_SEED)
 np.random.seed(GLOBAL_RANDOM_SEED)
 
-# Configure data paths
 VOICEBANK_BASE_DIR = "/home/users/ntu/ccdsjmzh/scratch/voicebank-demand"
-CLEAN_TRAINSET_DIR = os.path.join(VOICEBANK_BASE_DIR, "clean_trainset_wav")
 
 
 def extract_speaker_from_filename(filename):
@@ -51,23 +50,31 @@ def extract_speaker_from_filename(filename):
     return basename
 
 
-def scan_voicebank_dataset():
+def scan_voicebank_dataset(data_dir=None):
     """
     Scan VoiceBank-Demand clean_trainset_wav dataset.
     Groups audio files by speaker and filters valid files.
     
+    Args:
+        data_dir: Base directory containing VoiceBank-Demand dataset
+    
     Returns:
         tuple: (speaker_files dict, source_dir path)
     """
-    print(f"\nProcessing VoiceBank-Demand")
-    print(f"Source: {CLEAN_TRAINSET_DIR}")
+    if data_dir is None:
+        data_dir = VOICEBANK_BASE_DIR
     
-    if not os.path.exists(CLEAN_TRAINSET_DIR):
+    clean_trainset_dir = os.path.join(data_dir, "clean_trainset_wav")
+    
+    print(f"\nProcessing VoiceBank-Demand")
+    print(f"Source: {clean_trainset_dir}")
+    
+    if not os.path.exists(clean_trainset_dir):
         print(f"Error: Directory not found")
         return {}, None
     
     print(f"\nScanning directory...")
-    wav_files = glob.glob(os.path.join(CLEAN_TRAINSET_DIR, "*.wav"))
+    wav_files = glob.glob(os.path.join(clean_trainset_dir, "*.wav"))
     print(f"Found {len(wav_files)} files")
     
     speaker_files = defaultdict(list)
@@ -87,19 +94,10 @@ def scan_voicebank_dataset():
     
     print(f"Valid files: {total_files}, Speakers: {len(speaker_files)}")
     
-    return dict(speaker_files), CLEAN_TRAINSET_DIR
+    return dict(speaker_files), clean_trainset_dir
 
 
-def normalize_audio_peak(audio, target_peak=0.8):
-    """Normalize audio to target peak amplitude."""
-    current_peak = np.max(np.abs(audio))
-    if current_peak == 0:
-        return audio
-    return audio * (target_peak / current_peak)
-
-
-def create_voicebank_audio_combinations(speaker_files, target_dir, target_sr=16000, 
-                                        enable_origin_peak_normalization=False, target_peak=0.8):
+def create_voicebank_audio_combinations(speaker_files, target_dir, target_sr=16000):
     """
     Create maximum number of VoiceBank audio combinations using each file only once.
     
@@ -107,16 +105,12 @@ def create_voicebank_audio_combinations(speaker_files, target_dir, target_sr=160
         speaker_files: Dictionary of files grouped by speaker
         target_dir: Output directory
         target_sr: Target sample rate
-        enable_origin_peak_normalization: Whether to apply peak normalization to origin audio
-        target_peak: Target peak value for normalization
         
     Returns:
         list: Created combinations
     """
     print(f"\nCreating combinations...")
     print(f"Target: {target_dir}")
-    if enable_origin_peak_normalization:
-        print(f"Peak normalization: {target_peak}")
     
     os.makedirs(target_dir, exist_ok=True)
     os.makedirs(os.path.join(target_dir, "origin"), exist_ok=True)
@@ -209,8 +203,7 @@ def create_voicebank_audio_combinations(speaker_files, target_dir, target_sr=160
         
         try:
             combination_result = process_voicebank_combination(
-                selected_files, volume_settings, target_dir, target_sr, combo_idx, 
-                enable_origin_peak_normalization, target_peak
+                selected_files, volume_settings, target_dir, target_sr, combo_idx
             )
             
             if combination_result:
@@ -223,8 +216,7 @@ def create_voicebank_audio_combinations(speaker_files, target_dir, target_sr=160
     return combinations_created
 
 
-def process_voicebank_combination(file_paths, volume_settings, target_dir, target_sr, combo_id, 
-                                  enable_origin_peak_normalization=False, target_peak=0.8):
+def process_voicebank_combination(file_paths, volume_settings, target_dir, target_sr, combo_id):
     """
     Process single VoiceBank audio combination.
     
@@ -234,8 +226,6 @@ def process_voicebank_combination(file_paths, volume_settings, target_dir, targe
         target_dir: Output directory
         target_sr: Target sample rate
         combo_id: Combination ID
-        enable_origin_peak_normalization: Whether to apply peak normalization
-        target_peak: Target peak value
         
     Returns:
         dict: Combination information
@@ -247,17 +237,7 @@ def process_voicebank_combination(file_paths, volume_settings, target_dir, targe
 
         for file_path, volume in zip(file_paths, volume_settings):
             audio, sr = librosa.load(file_path, sr=target_sr)
-
-            if enable_origin_peak_normalization:
-                origin_audio = normalize_audio_peak(audio.copy(), target_peak=target_peak)
-                augmentation_mode = 'peak_normalized'
-                augmentation_description = f'Peak normalized to {target_peak} before combination'
-            else:
-                origin_audio = audio.copy()
-                augmentation_mode = 'original'
-                augmentation_description = 'No normalization applied'
-            
-            origin_audio_segments.append(origin_audio)
+            origin_audio_segments.append(audio.copy())
 
             audio_adjusted = audio * volume
             lower_audio_segments.append(audio_adjusted)
@@ -271,11 +251,7 @@ def process_voicebank_combination(file_paths, volume_settings, target_dir, targe
                 'speaker_id': speaker_id,
                 'volume': volume,
                 'duration': len(audio) / target_sr,
-                'sample_rate': target_sr,
-                'origin_augmentation_mode': augmentation_mode,
-                'origin_augmentation_description': augmentation_description,
-                'origin_peak_normalized': enable_origin_peak_normalization,
-                'target_peak': target_peak if enable_origin_peak_normalization else None
+                'sample_rate': target_sr
             })
 
         origin_combined_audio = np.concatenate(origin_audio_segments)
@@ -301,9 +277,7 @@ def process_voicebank_combination(file_paths, volume_settings, target_dir, targe
             'total_duration': total_duration,
             'num_segments': len(file_paths),
             'file_info': file_info,
-            'base_filename': base_filename,
-            'origin_peak_normalized': enable_origin_peak_normalization,
-            'target_peak': target_peak if enable_origin_peak_normalization else None
+            'base_filename': base_filename
         }
 
     except Exception as e:
@@ -343,8 +317,6 @@ def generate_voicebank_metadata(combinations, target_dir):
                 'num_speakers': len(combo['speakers']),
                 'total_duration': combo['total_duration'],
                 'num_segments': combo['num_segments'],
-                'origin_peak_normalized': combo.get('origin_peak_normalized', False),
-                'target_peak': combo.get('target_peak', None),
                 'segments': []
             }
 
@@ -359,11 +331,7 @@ def generate_voicebank_metadata(combinations, target_dir):
                     'duration': segment['duration'],
                     'volume_factor': segment['volume'],
                     'volume_percentage': int(segment['volume'] * 100),
-                    'sample_rate': segment['sample_rate'],
-                    'origin_augmentation_mode': segment.get('origin_augmentation_mode', 'original'),
-                    'origin_augmentation_description': segment.get('origin_augmentation_description', 'No normalization applied'),
-                    'origin_peak_normalized': segment.get('origin_peak_normalized', False),
-                    'target_peak': segment.get('target_peak', None)
+                    'sample_rate': segment['sample_rate']
                 }
 
                 metadata['segments'].append(segment_metadata)
@@ -413,25 +381,33 @@ def generate_voicebank_metadata(combinations, target_dir):
     }
 
 
-def main_process_voicebank_demand(enable_origin_peak_normalization=False, target_peak=0.4):
+def main_process_voicebank_demand(data_dir=None, output_dir=None):
     """
     Main function to process VoiceBank-Demand dataset.
     
     Args:
-        enable_origin_peak_normalization: Whether to apply peak normalization to origin audio
-        target_peak: Target peak value for normalization
+        data_dir: Base directory containing VoiceBank-Demand dataset
+        output_dir: Output directory (if None, uses data_dir/train_5_30)
     """
-    target_dir = os.path.join(VOICEBANK_BASE_DIR, "train_new_5_20")
+    if data_dir is None:
+        data_dir = VOICEBANK_BASE_DIR
+    
+    # Auto append mode and volume label
+    if output_dir:
+        target_dir = os.path.join(output_dir, "train_5_30")
+    else:
+        target_dir = os.path.join(data_dir, "train_5_30")
+    
     target_sr = 16000
 
-    speaker_files, source_dir = scan_voicebank_dataset()
+    speaker_files, source_dir = scan_voicebank_dataset(data_dir)
 
     if not speaker_files:
         print("\nNo valid speaker files found.")
         return
 
     combinations = create_voicebank_audio_combinations(
-        speaker_files, target_dir, target_sr, enable_origin_peak_normalization, target_peak
+        speaker_files, target_dir, target_sr
     )
 
     if not combinations:
@@ -450,6 +426,14 @@ def main_process_voicebank_demand(enable_origin_peak_normalization=False, target
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='VoiceBank-AGC Dataset Generator')
+    parser.add_argument('--data_dir', type=str, required=True,
+                        help='Base directory containing VoiceBank-Demand dataset')
+    parser.add_argument('--output_dir', type=str, default=None,
+                        help='Output directory (default: data_dir/train_5_30)')
+    args = parser.parse_args()
+    
     combinations, metadata_result = main_process_voicebank_demand(
-        enable_origin_peak_normalization=False
+        data_dir=args.data_dir,
+        output_dir=args.output_dir
     )

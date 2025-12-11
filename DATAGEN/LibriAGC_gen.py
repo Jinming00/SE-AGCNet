@@ -23,35 +23,47 @@ from tqdm import tqdm
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
+import argparse
 
 # Global random seed for reproducibility
 GLOBAL_RANDOM_SEED = 42
 random.seed(GLOBAL_RANDOM_SEED)
 np.random.seed(GLOBAL_RANDOM_SEED)
 
-# Configure data paths
-DATA_BASE_DIR = os.environ.get('LIBRITTS_BASE_DIR', '/home/users/ntu/ccdsjmzh/scratch')
+# Configure data paths (will be set by command line argument)
+DATA_BASE_DIR = '/home/users/ntu/ccdsjmzh/scratch'
 
 
-def batch_process_libritts_dataset(dataset_type='train'):
+def batch_process_libritts_dataset(dataset_type='train', data_base_dir=None, output_dir=None):
     """
     Scan LibriTTS dataset and group audio files by speaker.
     
     Args:
         dataset_type: 'train' for train-clean-100/360, 'test' for test-clean
+        data_base_dir: Base directory containing LibriTTS dataset
+        output_dir: Output directory (if None, uses data_base_dir/train_5_30 or test_5_30)
     
     Returns:
         tuple: (speaker_files dict, source_dir path, target_dir path, target_sr)
     """
+    if data_base_dir is None:
+        data_base_dir = DATA_BASE_DIR
+    
     if dataset_type == 'train':
         source_dirs = [
-        os.path.join(DATA_BASE_DIR, "LibriTTS", "train-clean-100"),
-            # os.path.join(DATA_BASE_DIR, "LibriTTS", "train-clean-360")
+        os.path.join(data_base_dir, "train-clean-100"),
+            # os.path.join(data_base_dir, "train-clean-360")
         ]
-        target_dir = os.path.join(DATA_BASE_DIR, "LibriTTS", "train_5_30")
+        default_target = os.path.join(data_base_dir, "train_5_30")
     else:  # test
-        source_dirs = [os.path.join(DATA_BASE_DIR, "LibriTTS", "test-clean")]
-        target_dir = os.path.join(DATA_BASE_DIR, "LibriTTS", "test_5_30")
+        source_dirs = [os.path.join(data_base_dir, "test-clean")]
+        default_target = os.path.join(data_base_dir, "test_5_30")
+    
+    # If output_dir specified, append mode and volume label
+    if output_dir:
+        target_dir = os.path.join(output_dir, f"{dataset_type}_5_30")
+    else:
+        target_dir = default_target
     
     target_sr = 16000
 
@@ -473,9 +485,9 @@ def generate_transcription_files(combinations, source_dir, target_dir):
     return transcription_dir, rttm_dir
 
 
-def main_train():
+def main_train(data_base_dir=None, output_dir=None):
     """Process training datasets (train-clean-100 and train-clean-360)."""
-    speaker_files, source_dir, target_dir, target_sr = batch_process_libritts_dataset('train')
+    speaker_files, source_dir, target_dir, target_sr = batch_process_libritts_dataset('train', data_base_dir, output_dir)
     
     if not speaker_files:
         print("\nNo valid speaker files found.")
@@ -497,9 +509,9 @@ def main_train():
         print(f"Output: {target_dir}\n")
 
 
-def main_test():
+def main_test(data_base_dir=None, output_dir=None):
     """Process test dataset (test-clean)."""
-    speaker_files, source_dir, target_dir, target_sr = batch_process_libritts_dataset('test')
+    speaker_files, source_dir, target_dir, target_sr = batch_process_libritts_dataset('test', data_base_dir, output_dir)
     
     if not speaker_files:
         print("\nNo valid speaker files found.")
@@ -522,6 +534,16 @@ def main_test():
 
 
 if __name__ == "__main__":
-    # Uncomment the one you want to process
-    # main_train()  # Process training datasets
-    main_test()     # Process test dataset
+    parser = argparse.ArgumentParser(description='LibriAGC Dataset Generator')
+    parser.add_argument('--data_dir', type=str, required=True,
+                        help='Base directory containing LibriTTS dataset')
+    parser.add_argument('--mode', type=str, default='test', choices=['train', 'test'],
+                        help='Processing mode: train or test (default: test)')
+    parser.add_argument('--output_dir', type=str, default=None,
+                        help='Output directory (default: data_dir/train_5_30 or test_5_30)')
+    args = parser.parse_args()
+    
+    if args.mode == 'train':
+        main_train(args.data_dir, args.output_dir)
+    else:
+        main_test(args.data_dir, args.output_dir)

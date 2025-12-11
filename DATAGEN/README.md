@@ -1,91 +1,71 @@
 # AGC Dataset Generation
 
-Scripts for generating multi-speaker audio datasets with simulated AGC scenarios for speech enhancement.
+Generate multi-speaker audio combinations for AGC speech enhancement training.
 
-## Supported Datasets
+## Datasets
 
-- **LibriTTS**: Multi-speaker English TTS corpus (train-clean-100, train-clean-360, test-clean)
-- **VoiceBank-Demand**
+- **LibriTTS**: https://www.openslr.org/60/
+- **VoiceBank-Demand(use '28spk')**: https://datashare.ed.ac.uk/handle/10283/2791  
 
-## Quick Start
-
-### Requirements
+## Requirements
 
 ```bash
 pip install numpy librosa soundfile tqdm pandas
 ```
 
+## Usage
+
 ### LibriTTS
 
-Download the original dataset from https://www.openslr.org/60/
-
-Set data directory:
 ```bash
-export LIBRITTS_BASE_DIR=/path/to/your/data
+python LibriAGC_gen.py \
+    --data_dir /path/to/LibriTTS \
+    --output_dir /path/to/output \
+    --mode test  # or train
 ```
 
-Choose train or test in `LibriAGC_gen.py`:
-```python
-if __name__ == "__main__":
-    main_train()  # or main_test()
-```
-
-Run:
+Or use the script:
 ```bash
-python LibriAGC_gen.py
+bash run_libriagc_gen.sh
 ```
 
 ### VoiceBank-Demand
 
-Edit path in `VoiceBankAGC_gen.py`:
-```python
-VOICEBANK_BASE_DIR = "/path/to/voicebank-demand"
-```
-
-Run:
 ```bash
-python VoiceBankAGC_gen.py
+python VoiceBankAGC_gen.py \
+    --data_dir /path/to/voicebank-demand \
+    --output_dir /path/to/output
 ```
 
-## What It Does
-
-Combines 2-5 audio clips from different speakers into single files. For each combination:
-
-- **origin/**: Concatenated audio without modification
-- **lower/**: Same audio with volume reduced to 5-30% of original
-
-Audio augmentation is randomly applied to lower files (60% chance):
-- Sudden volume spikes (15%)
-- Gradual volume increase (15%)
-- Gradual volume decrease (15%)
-- Volume fluctuation (15%)
-
-## Output Structure
-
-### LibriTTS
-```
-LibriTTS/train_5_30/
-├── origin/              # Concatenated audio
-├── lower/               # Volume-reduced + augmented audio
-├── transcriptions/      # Text transcriptions (.txt)
-├── rttm/                # Speaker diarization (.rttm)
-└── metadata/            # JSON metadata
+Or:
+```bash
+bash run_voicebank_gen.sh
 ```
 
-### VoiceBank-Demand
+## How it works
+
+Concatenates 2-5 clips from different speakers:
+
+| Directory | Content |
+|-----------|---------|
+| origin/ | Raw concatenation |
+| lower/ | Some clips reduced to 5-30% volume, with augmentation |
+
+Augmentation (15% each):
+- Sudden spikes (2-5x volume)
+- Gradual increase
+- Gradual decrease
+- Volume fluctuation (sine wave)
+
+## Output
+
 ```
-voicebank-demand/processed/
-├── origin/              # Concatenated audio
-├── lower/               # Volume-reduced audio
-└── metadata/            # JSON metadata
+{output_dir}/{mode}_5_30/
+├── origin/
+├── lower/
+├── transcriptions/   # LibriTTS only
+├── rttm/             # LibriTTS only
+└── metadata/
 ```
-
-
-## Files
-
-- `LibriAGC_gen.py`: LibriTTS dataset processor
-- `VoiceBankAGC_gen.py`: VoiceBank dataset processor
-- `audio_augmentation.py`: Augmentation functions
-- `metadata_generator.py`: Metadata generation
 
 
