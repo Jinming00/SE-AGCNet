@@ -10,37 +10,49 @@ def g_asym(x, alpha=10.0):
 
 
 def asymmetric_magnitude_loss(pred_mag, target_mag, alpha=10.0):
-    """Magnitude loss with asymmetric penalty for over-suppression."""
+    """Magnitude loss with asymmetric weighted MSE for over-suppression."""
     x = target_mag - pred_mag
-    asymmetric_penalty = g_asym(x, alpha)
-    return torch.mean(torch.abs(asymmetric_penalty))
+    weight = torch.where(x > 0, alpha, 1.0)
+    return torch.mean(weight * (x ** 2))
 
 
 def asymmetric_complex_loss(pred_com, target_com, alpha=10.0):
-    """Complex loss with asymmetric penalty for over-suppression."""
+    """Complex loss with asymmetric weighted MSE for over-suppression."""
     x = target_com - pred_com
-    asymmetric_penalty = g_asym(x, alpha)
-    return torch.mean(torch.abs(asymmetric_penalty))
+    weight = torch.where(x > 0, alpha, 1.0)
+    return torch.mean(weight * (x ** 2))
 
 
 def asymmetric_time_loss(pred_audio, target_audio, alpha=10.0):
-    """Time-domain loss with asymmetric penalty for over-suppression."""
+    """Time-domain loss with asymmetric absolute penalty for over-suppression."""
     x = target_audio - pred_audio
     asymmetric_penalty = g_asym(x, alpha)
     return torch.mean(torch.abs(asymmetric_penalty))
 
 
-def conditional_positive_penalty_loss(pred, target, penalty_factor=10.0):
+def conditional_positive_penalty_loss(pred, target, penalty_factor=10.0, silence_threshold=1e-4):
     """
     AGC loss with penalty for positive predictions when target is zero.
     Prevents generating signal in silent regions.
     """
     normal_loss = F.l1_loss(pred, target, reduction='none')
-    zero_target_mask = (target == 0).float()
+    zero_target_mask = (target < silence_threshold).float()
     positive_pred_mask = (pred > 0).float()
     penalty_mask = zero_target_mask * positive_pred_mask
     weight = penalty_mask * penalty_factor + (1 - penalty_mask) * 1.0
     return torch.mean(normal_loss * weight)
+
+
+def compute_agc_loss(pred_mag, target_mag, a):
+    """Compute AGC loss for both standalone and joint AGC training."""
+    if a.enable_agc_penalty:
+        return conditional_positive_penalty_loss(
+            pred_mag,
+            target_mag,
+            penalty_factor=a.agc_penalty_factor,
+            silence_threshold=a.agc_silence_threshold,
+        )
+    return F.l1_loss(pred_mag, target_mag)
 
 
 def compute_generator_loss(clean_mag, clean_pha, clean_com, clean_audio,
@@ -70,20 +82,16 @@ def compute_generator_loss(clean_mag, clean_pha, clean_com, clean_audio,
     # Metric discriminator loss
     loss_metric = F.mse_loss(metric_g.flatten(), one_labels)
     
-    # AGC loss with optional conditional penalty
-    if a.enable_agc_penalty:
-        loss_agc = conditional_positive_penalty_loss(
-            agc_mag_normalized, origin_mag_normalized, penalty_factor=a.agc_penalty_factor
-        )
-    else:
-        loss_agc = F.l1_loss(agc_mag_normalized, origin_mag_normalized)
-    
     # Staged training: MP-SENet only or MP-SENet + AGC
     if a.staged_training and epoch < a.stage1_epochs:
         loss_gen_all = (loss_mag * 0.9 + loss_pha * 0.3 + loss_com * 0.1 +
                        loss_stft * 0.1 + loss_metric * 0.05 + loss_time * 0.2)
+        loss_agc = None
         stage_info = "Stage 1 (MP-SENet)"
     else:
+        # AGC loss with optional conditional penalty
+        loss_agc = compute_agc_loss(agc_mag_normalized, origin_mag_normalized, a)
+
         loss_gen_all = (loss_mag * 0.9 + loss_pha * 0.3 + loss_com * 0.1 +
                        loss_stft * 0.1 + loss_metric * 0.05 + loss_time * 0.2 +
                        loss_agc * a.agc_loss_weight)
@@ -96,7 +104,7 @@ def compute_generator_loss(clean_mag, clean_pha, clean_com, clean_audio,
         'loss_time': loss_time.item(),
         'loss_stft': loss_stft.item(),
         'loss_metric': loss_metric.item(),
-        'loss_agc': loss_agc.item(),
+        'loss_agc': None if loss_agc is None else loss_agc.item(),
         'stage_info': stage_info
     }
     
@@ -119,4 +127,3 @@ def compute_discriminator_loss(discriminator, clean_mag, mpnet_mag_hat,
     
     loss_disc_all = loss_disc_r + loss_disc_g
     return loss_disc_all
-

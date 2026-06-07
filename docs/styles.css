@@ -1,0 +1,305 @@
+:root {
+  --ink: #17211b;
+  --muted: #5c6a61;
+  --paper: #f7f3e8;
+  --card: rgba(255, 252, 243, 0.86);
+  --line: rgba(23, 33, 27, 0.14);
+  --moss: #2f5d46;
+  --clay: #bd6b3f;
+  --sand: #e3c27a;
+  --shadow: 0 24px 80px rgba(29, 42, 34, 0.16);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Fraunces", "Georgia", serif;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(227, 194, 122, 0.5), transparent 32rem),
+    radial-gradient(circle at 88% 12%, rgba(189, 107, 63, 0.22), transparent 28rem),
+    linear-gradient(135deg, #f8f0df 0%, #edf2e6 56%, #f6efe4 100%);
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background-image:
+    linear-gradient(rgba(23, 33, 27, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 33, 27, 0.035) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent 72%);
+}
+
+a {
+  color: var(--moss);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.page {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 32px;
+  align-items: center;
+  min-height: 92vh;
+  padding: 64px 0 40px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--moss);
+  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+h1 {
+  max-width: 900px;
+  margin: 22px 0 18px;
+  font-size: clamp(2.75rem, 7vw, 6.8rem);
+  line-height: 0.88;
+  letter-spacing: -0.065em;
+}
+
+.subtitle {
+  max-width: 780px;
+  margin: 0;
+  color: var(--muted);
+  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  color: var(--ink);
+  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+  font-weight: 700;
+  text-decoration: none;
+  background: var(--sand);
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.button:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.button.secondary {
+  background: #fff9ea;
+}
+
+.hero-card {
+  position: relative;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.hero-card::before {
+  position: absolute;
+  inset: auto -48px -48px auto;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  content: "";
+  background: rgba(47, 93, 70, 0.15);
+}
+
+.meter {
+  display: grid;
+  gap: 18px;
+  margin-top: 6px;
+}
+
+.meter-row {
+  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+}
+
+.meter-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.meter-track {
+  height: 18px;
+  border: 1px solid rgba(23, 33, 27, 0.26);
+  border-radius: 999px;
+  background: #eadfc8;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--clay), var(--moss));
+}
+
+.section {
+  margin: 36px 0;
+  padding: 34px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: var(--card);
+  box-shadow: 0 16px 50px rgba(29, 42, 34, 0.08);
+}
+
+.section h2 {
+  margin: 0 0 14px;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.section p {
+  color: var(--muted);
+  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.pipeline {
+  width: 100%;
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #fff;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.stat {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.stat strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1.35rem;
+}
+
+.stat span {
+  color: var(--muted);
+  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+  font-size: 0.95rem;
+}
+
+.demo-table {
+  display: grid;
+  gap: 18px;
+}
+
+.demo-case {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.demo-case h3 {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+}
+
+.audio-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.audio-card {
+  padding: 14px;
+  border: 1px solid rgba(23, 33, 27, 0.12);
+  border-radius: 16px;
+  background: #fffaf0;
+}
+
+.audio-card span {
+  display: block;
+  min-height: 38px;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+audio {
+  width: 100%;
+  height: 36px;
+}
+
+.footer {
+  padding: 32px 0 56px;
+  color: var(--muted);
+  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .grid,
+  .audio-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section {
+    padding: 24px;
+  }
+}

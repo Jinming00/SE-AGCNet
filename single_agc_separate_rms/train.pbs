@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -N agc_single
+#PBS -l select=1:ngpus=1
+#PBS -l walltime=2:00:00
+#PBS -q normal
+#PBS -j oe
+#PBS -o /home/users/ntu/ccdsjmzh/scratch/MP-SENet/single_agc_separate_rms/train.log
+
+# Environment setup
+cd /home/users/ntu/ccdsjmzh/scratch/MP-SENet/single_agc_separate_rms
+source ~/.bashrc    
+conda activate diarizen
+
+python train.py

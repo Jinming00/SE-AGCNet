@@ -1,0 +1,28 @@
+AGC Model Training Validation Results
+==================================================
+Training Parameters:
+- Learning Rate: 0.001
+- Epochs: 400
+- Patience: 10
+- Alpha (silence noise penalty): 10.0
+- STFT Parameters: n_fft=400, hop=100, win_size=400
+==================================================
+Epoch 1/400, Train Loss: 0.081897, Val Loss: 0.061225, Val PESQ: 3.6838, LR: 0.001000
+Epoch 2/400, Train Loss: 0.052744, Val Loss: 0.049141, Val PESQ: 3.8394, LR: 0.001000
+Epoch 3/400, Train Loss: 0.044430, Val Loss: 0.044581, Val PESQ: 4.0206, LR: 0.001000
+Epoch 4/400, Train Loss: 0.039532, Val Loss: 0.038307, Val PESQ: 3.9709, LR: 0.001000
+Epoch 5/400, Train Loss: 0.036129, Val Loss: 0.035222, Val PESQ: 4.1691, LR: 0.001000
+Epoch 6/400, Train Loss: 0.033692, Val Loss: 0.034451, Val PESQ: 4.0813, LR: 0.001000
+Epoch 7/400, Train Loss: 0.031770, Val Loss: 0.032821, Val PESQ: 4.1119, LR: 0.001000
+Epoch 8/400, Train Loss: 0.030218, Val Loss: 0.030500, Val PESQ: 4.2194, LR: 0.001000
+Epoch 9/400, Train Loss: 0.028917, Val Loss: 0.028889, Val PESQ: 4.2323, LR: 0.001000
+Epoch 10/400, Train Loss: 0.027869, Val Loss: 0.028332, Val PESQ: 4.2454, LR: 0.001000
+Epoch 11/400, Train Loss: 0.026987, Val Loss: 0.028453, Val PESQ: 4.2393, LR: 0.001000
+Epoch 12/400, Train Loss: 0.026206, Val Loss: 0.027750, Val PESQ: 4.2831, LR: 0.001000
+Epoch 13/400, Train Loss: 0.025560, Val Loss: 0.027205, Val PESQ: 4.1929, LR: 0.001000
+Epoch 14/400, Train Loss: 0.024965, Val Loss: 0.027147, Val PESQ: 4.1915, LR: 0.001000
+Epoch 15/400, Train Loss: 0.024413, Val Loss: 0.026715, Val PESQ: 4.2904, LR: 0.001000
+Epoch 16/400, Train Loss: 0.023866, Val Loss: 0.026791, Val PESQ: 4.2555, LR: 0.001000
+Epoch 17/400, Train Loss: 0.023398, Val Loss: 0.025226, Val PESQ: 4.2834, LR: 0.001000
+Epoch 18/400, Train Loss: 0.022883, Val Loss: 0.025243, Val PESQ: 4.2816, LR: 0.001000
+Epoch 19/400, Train Loss: 0.022470, Val Loss: 0.025566, Val PESQ: 4.2842, LR: 0.001000

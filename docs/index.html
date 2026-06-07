@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="SE-AGCNet project page with audio demos for joint speech enhancement and automatic gain control.">
+    <title>SE-AGCNet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Interspeech 2026 Submission</div>
+          <h1>SE-AGCNet</h1>
+          <p class="subtitle">
+            An end-to-end framework for joint speech enhancement and loudness control in meeting scenarios with large volume variations.
+          </p>
+          <div class="actions">
+            <a class="button" href="https://github.com/Jinming00/SE-AGCNet">Code</a>
+            <a class="button secondary" href="#demos">Audio Demos</a>
+            <a class="button secondary" href="#method">Method</a>
+          </div>
+        </div>
+
+        <aside class="hero-card" aria-label="SE-AGCNet summary">
+          <div class="meter">
+            <div class="meter-row">
+              <div class="meter-label"><span>Enhancement</span><span>SE</span></div>
+              <div class="meter-track"><div class="meter-fill" style="width: 86%"></div></div>
+            </div>
+            <div class="meter-row">
+              <div class="meter-label"><span>Loudness Control</span><span>AGC</span></div>
+              <div class="meter-track"><div class="meter-fill" style="width: 92%"></div></div>
+            </div>
+            <div class="meter-row">
+              <div class="meter-label"><span>ASR Robustness</span><span>Meeting Audio</span></div>
+              <div class="meter-track"><div class="meter-fill" style="width: 78%"></div></div>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section" id="abstract">
+        <h2>Abstract</h2>
+        <p>
+          Conventional audio pipelines usually treat speech enhancement and automatic gain control as separate modules.
+          This can amplify background noise when AGC is applied before enhancement, or suppress quiet speech when enhancement is applied before AGC.
+          SE-AGCNet jointly optimizes both tasks end-to-end for meeting scenarios, preserving low-volume speech while controlling loudness.
+          The project also includes SE-AGC-DataGen and loudness-aware evaluation with integrated LUFS, short-term LUFS, and LRA.
+        </p>
+      </section>
+
+      <section class="section" id="method">
+        <h2>Joint SE + AGC</h2>
+        <div class="grid">
+          <div class="stat">
+            <strong>End-to-end</strong>
+            <span>One framework jointly optimizes speech enhancement and automatic gain control.</span>
+          </div>
+          <div class="stat">
+            <strong>Meeting focused</strong>
+            <span>Designed for far-field speech, noise, reverberation, and strong speaker loudness variation.</span>
+          </div>
+          <div class="stat">
+            <strong>Loudness aware</strong>
+            <span>Evaluated with LUFS, short-term LUFS, LRA, speech quality, and ASR metrics.</span>
+          </div>
+        </div>
+        <img class="pipeline" src="assets/figures/pipeline.png" alt="SE-AGCNet pipeline diagram">
+      </section>
+
+      <section class="section" id="demos">
+        <h2>Audio Demos</h2>
+        <p>
+          Each row compares the noisy input, open-source MP-SENet output, MP-SENet speech enhancement, cascaded MP-SENet + pyagc, and SE-AGCNet.
+        </p>
+        <div class="demo-table">
+          <article class="demo-case">
+            <h3>LibriAGC</h3>
+            <div class="audio-grid">
+              <div class="audio-card"><span>Input</span><audio controls src="assets/audio/input/libriagc.wav"></audio></div>
+              <div class="audio-card"><span>MP-SENet Orig</span><audio controls src="assets/audio/mpse-open-source/libriagc.wav"></audio></div>
+              <div class="audio-card"><span>MP-SENet SE</span><audio controls src="assets/audio/mpse-se/libriagc.wav"></audio></div>
+              <div class="audio-card"><span>MP-SENet SE + pyagc</span><audio controls src="assets/audio/mpse-se-pyagc/libriagc.wav"></audio></div>
+              <div class="audio-card"><span>SE-AGCNet</span><audio controls src="assets/audio/se-agcnet/libriagc.wav"></audio></div>
+            </div>
+          </article>
+
+          <article class="demo-case">
+            <h3>MMCSG</h3>
+            <div class="audio-grid">
+              <div class="audio-card"><span>Input</span><audio controls src="assets/audio/input/mmcsg.wav"></audio></div>
+              <div class="audio-card"><span>MP-SENet Orig</span><audio controls src="assets/audio/mpse-open-source/mmcsg.wav"></audio></div>
+              <div class="audio-card"><span>MP-SENet SE</span><audio controls src="assets/audio/mpse-se/mmcsg.wav"></audio></div>
+              <div class="audio-card"><span>MP-SENet SE + pyagc</span><audio controls src="assets/audio/mpse-se-pyagc/mmcsg.wav"></audio></div>
+              <div class="audio-card"><span>SE-AGCNet</span><audio controls src="assets/audio/se-agcnet/mmcsg.wav"></audio></div>
+            </div>
+          </article>
+
+          <article class="demo-case">
+            <h3>AliMeeting Far-field</h3>
+            <div class="audio-grid">
+              <div class="audio-card"><span>Input</span><audio controls src="assets/audio/input/ali.wav"></audio></div>
+              <div class="audio-card"><span>MP-SENet Orig</span><audio controls src="assets/audio/mpse-open-source/ali.wav"></audio></div>
+              <div class="audio-card"><span>MP-SENet SE</span><audio controls src="assets/audio/mpse-se/ali.wav"></audio></div>
+              <div class="audio-card"><span>MP-SENet SE + pyagc</span><audio controls src="assets/audio/mpse-se-pyagc/ali.wav"></audio></div>
+              <div class="audio-card"><span>SE-AGCNet</span><audio controls src="assets/audio/se-agcnet/ali.wav"></audio></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="resources">
+        <h2>Resources</h2>
+        <p>
+          Code, training scripts, inference scripts, pyagc, and data generation utilities are available in the GitHub repository.
+          Pre-trained model and dataset links are documented in the repository README.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      SE-AGCNet: Joint Speech Enhancement and Loudness Control.
+    </footer>
+  </body>
+</html>

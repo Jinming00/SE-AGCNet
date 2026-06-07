@@ -10,8 +10,9 @@ class AGCModule(nn.Module):
     Performs RMS normalization and level control on magnitude spectrograms.
     """
     
-    def __init__(self, input_channels=1, hidden_size=256, num_layers=2, 
-                 bidirectional=True, freq_bins=257):
+    def __init__(self, input_channels=1, hidden_size=256, num_layers=2,
+                 bidirectional=True, freq_bins=257, conv_channels=16,
+                 decoder_channels=8, output_mid_size=512):
         super(AGCModule, self).__init__()
         
         self.input_channels = input_channels
@@ -19,20 +20,23 @@ class AGCModule(nn.Module):
         self.num_layers = num_layers
         self.bidirectional = bidirectional
         self.freq_bins = freq_bins
+        self.conv_channels = conv_channels
+        self.decoder_channels = decoder_channels
+        self.output_mid_size = output_mid_size
         
         # Convolutional encoder
         self.freq_conv = nn.Sequential(
-            nn.Conv2d(input_channels, 16, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(16),
+            nn.Conv2d(input_channels, conv_channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(conv_channels),
             nn.ReLU(),
-            nn.Conv2d(16, 16, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(16),
+            nn.Conv2d(conv_channels, conv_channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(conv_channels),
             nn.ReLU()
         )
         
         # BiLSTM for temporal modeling
         self.lstm = nn.LSTM(
-            input_size=16 * freq_bins,
+            input_size=conv_channels * freq_bins,
             hidden_size=hidden_size,
             num_layers=num_layers,
             batch_first=True,
@@ -42,17 +46,17 @@ class AGCModule(nn.Module):
         # Output layers
         lstm_output_size = hidden_size * 2 if bidirectional else hidden_size
         self.output_layer = nn.Sequential(
-            nn.Linear(lstm_output_size, 512),
+            nn.Linear(lstm_output_size, output_mid_size),
             nn.ReLU(),
-            nn.Linear(512, 16 * freq_bins)
+            nn.Linear(output_mid_size, conv_channels * freq_bins)
         )
         
         # Convolutional decoder to reconstruct magnitude
         self.reconstruct = nn.Sequential(
-            nn.ConvTranspose2d(16, 8, kernel_size=(3, 3), padding=(1, 1)),
-            nn.BatchNorm2d(8),
+            nn.ConvTranspose2d(conv_channels, decoder_channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.BatchNorm2d(decoder_channels),
             nn.ReLU(),
-            nn.ConvTranspose2d(8, input_channels, kernel_size=(3, 3), padding=(1, 1)),
+            nn.ConvTranspose2d(decoder_channels, input_channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.ReLU()
         )
     
@@ -70,7 +74,7 @@ class AGCModule(nn.Module):
         x = x.permute(0, 3, 1, 2).reshape(batch_size, time_frames, -1)
         lstm_out, _ = self.lstm(x)
         out = self.output_layer(lstm_out)
-        out = out.reshape(batch_size, time_frames, 16, freq_bins).permute(0, 2, 3, 1)
+        out = out.reshape(batch_size, time_frames, self.conv_channels, freq_bins).permute(0, 2, 3, 1)
         out = self.reconstruct(out)
         enhanced_magnitude = out.squeeze(1)
         
@@ -86,9 +90,31 @@ class MPSENetAGC(nn.Module):
         
         self.h = h
         self.mpnet = MPNet(h, num_tsblocks)
-        self.agc = AGCModule(freq_bins=h.n_fft // 2 + 1)
+        self.agc = AGCModule(
+            freq_bins=h.n_fft // 2 + 1,
+            hidden_size=getattr(h, 'agc_hidden_size', 256),
+            num_layers=getattr(h, 'agc_num_layers', 2),
+            bidirectional=bool(getattr(h, 'agc_bidirectional', True)),
+            conv_channels=getattr(h, 'agc_conv_channels', 16),
+            decoder_channels=getattr(h, 'agc_decoder_channels', 8),
+            output_mid_size=getattr(h, 'agc_output_mid_size', 512),
+        )
+
+    def normalize_for_agc(self, magnitude):
+        """Normalize a magnitude spectrogram by per-sample RMS for AGC input."""
+        batch_size = magnitude.size(0)
+        magnitude_rms = torch.sqrt(torch.mean(magnitude.reshape(batch_size, -1) ** 2, dim=1))
+        agc_norm_factor = 1.0 / (magnitude_rms + 1e-8)
+        magnitude_normalized = magnitude * agc_norm_factor.view(-1, 1, 1)
+        return magnitude_normalized, agc_norm_factor
+
+    def run_agc_from_mag(self, magnitude):
+        """Run AGC directly on a magnitude spectrogram."""
+        agc_input_norm, agc_norm_factor = self.normalize_for_agc(magnitude)
+        agc_amp_normalized = self.agc(agc_input_norm)
+        return agc_amp_normalized, agc_norm_factor
     
-    def forward(self, noisy_amp, noisy_pha, norm_factor=None):
+    def forward(self, noisy_amp, noisy_pha, norm_factor=None, run_agc=True):
         """
         Args:
             noisy_amp: [B, F, T] Noisy magnitude
@@ -99,18 +125,15 @@ class MPSENetAGC(nn.Module):
         """
         mpnet_amp, mpnet_pha, mpnet_com = self.mpnet(noisy_amp, noisy_pha)
         
+        if not run_agc:
+            return (None, mpnet_pha, None, mpnet_amp, mpnet_com, None)
+
         if norm_factor is not None:
             mpnet_amp_denormalized = mpnet_amp / norm_factor.view(-1, 1, 1)
         else:
             mpnet_amp_denormalized = mpnet_amp
-        
-        batch_size = mpnet_amp_denormalized.size(0)
-        agc_input_rms = torch.sqrt(
-            torch.mean(mpnet_amp_denormalized.view(batch_size, -1) ** 2, dim=1))
-        agc_norm_factor = 1.0 / (agc_input_rms + 1e-8)
-        agc_input_norm = mpnet_amp_denormalized * agc_norm_factor.view(-1, 1, 1)
-        
-        agc_amp_normalized = self.agc(agc_input_norm)
+
+        agc_amp_normalized, agc_norm_factor = self.run_agc_from_mag(mpnet_amp_denormalized)
         
         agc_com_normalized = torch.stack(
             (agc_amp_normalized * torch.cos(mpnet_pha),
@@ -118,4 +141,3 @@ class MPSENetAGC(nn.Module):
         
         return (agc_amp_normalized, mpnet_pha, agc_com_normalized, 
                 mpnet_amp, mpnet_com, agc_norm_factor)
-

@@ -164,8 +164,8 @@ class Dataset(torch.utils.data.Dataset):
         random.seed(1234)
         if shuffle:
             random.shuffle(self.audio_indexes)
-        self.clean_wavs_dir = clean_wavs_dir
-        self.noisy_wavs_dir = noisy_wavs_dir
+        self.clean_wavs_dirs = [d.strip() for d in clean_wavs_dir.split(',')]
+        self.noisy_wavs_dirs = [d.strip() for d in noisy_wavs_dir.split(',')]
         self.segment_size = segment_size
         self.sampling_rate = sampling_rate
         self.split = split
@@ -175,11 +175,20 @@ class Dataset(torch.utils.data.Dataset):
         self._cache_ref_count = 0
         self.device = device
 
+    def _find_file_in_dirs(self, filename, dirs):
+        for dir_path in dirs:
+            file_path = os.path.join(dir_path, filename + '.wav')
+            if os.path.exists(file_path):
+                return file_path
+        raise FileNotFoundError(f"{filename}.wav not found in: {dirs}")
+
     def __getitem__(self, index):
         filename = self.audio_indexes[index]
         if self._cache_ref_count == 0:
-            clean_audio, _ = librosa.load(os.path.join(self.clean_wavs_dir, filename + '.wav'), sr=self.sampling_rate)
-            noisy_audio, _ = librosa.load(os.path.join(self.noisy_wavs_dir, filename + '.wav'), sr=self.sampling_rate)
+            clean_file_path = self._find_file_in_dirs(filename, self.clean_wavs_dirs)
+            noisy_file_path = self._find_file_in_dirs(filename, self.noisy_wavs_dirs)
+            clean_audio, _ = librosa.load(clean_file_path, sr=self.sampling_rate)
+            noisy_audio, _ = librosa.load(noisy_file_path, sr=self.sampling_rate)
             length = min(len(clean_audio), len(noisy_audio))
             clean_audio, noisy_audio = clean_audio[: length], noisy_audio[: length]
             self.cached_clean_wav = clean_audio

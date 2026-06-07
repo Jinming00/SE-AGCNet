@@ -1,13 +1,17 @@
 #!/bin/bash
 # SE-AGCNet Inference Script
 
-# cd /home/ccds-jmzhang/SE-AGCNet
-
+cd /home/ccds-jmzhang/SE-AGCNet/
+source ~/.bashrc    
+conda activate seagcnet
 # Required paths (modify these)
-CHECKPOINT="./SE_AGCNet/ckpt/LibriAGC/g_00102000"
-CONFIG="./SE_AGCNet/config.json"
-INPUT_PATH="/home/ccds-jmzhang/10samples/noisy"       
-OUTPUT_PATH="/home/ccds-jmzhang/10samples/enhanced"   
+# CHECKPOINT="./SE_AGCNet/ckpt/LibriAGC/g_00102000"
+# CONFIG="./SE_AGCNet/config.json"
+CHECKPOINT="/projects_vol/gp_aseschng/jinming/ckpts/seagcnet/seagcnet/g_00100000"
+CONFIG="/projects_vol/gp_aseschng/jinming/ckpts/seagcnet/seagcnet/config.json"
+
+INPUT_PATH="/projects_vol/gp_aseschng/jinming/data/MMCSG/audio/sample_FYP"       
+OUTPUT_PATH="/projects_vol/gp_aseschng/jinming/data/MMCSG/audio/sample_FYP/processed/SE-AGCNet-new"   
 
 # Optional parameters
 MAX_LENGTH=32000  # Segment length in samples (2s at 16kHz)
