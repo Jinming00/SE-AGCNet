@@ -86,11 +86,48 @@ h1 {
 
 .subtitle {
   max-width: 780px;
-  margin: 0;
+  margin: 18px 0 0;
   color: var(--muted);
   font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
   font-size: clamp(1.05rem, 2vw, 1.35rem);
   line-height: 1.55;
+}
+
+.authors {
+  max-width: 860px;
+  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+}
+
+.authors p {
+  margin: 0;
+}
+
+.author-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  color: var(--ink);
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  font-weight: 700;
+}
+
+.affiliations,
+.email-line {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.affiliations span,
+.email-line span {
+  margin: 0 8px;
+  color: rgba(23, 33, 27, 0.35);
+}
+
+sup {
+  font-size: 0.65em;
+  line-height: 0;
 }
 
 .actions {
