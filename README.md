@@ -46,6 +46,15 @@ Pre-trained checkpoints are currently stored under `SE_AGCNet/ckpt/`.
 
 For SE-AGC data generation details, see `DATAGEN/README.md`.
 
+## Runtime
+
+Real-time factor (RTF) was measured on a single NVIDIA L40S GPU.
+
+| Model | RTF |
+| --- | ---: |
+| MP-SENet | 0.0329 |
+| SE-AGCNet | 0.0357 |
+
 ## PyAGC
 
 The `pyagc/` directory contains the Python 3 implementation of time-frequency automatic gain control. See `pyagc/README.md` for details.
