@@ -23,19 +23,11 @@ The VoiceBankAGC dataset can be downloaded from:
 
 ## Environment Setup
 
-An exported snapshot of the current working environment is provided in [environment.yml](/home/ccds-jmzhang/SE-AGCNet/environment.yml).
-
 ### Create the environment
 
 ```bash
 conda env create -f environment.yml
 conda activate seagcnet
-```
-
-### Update an existing environment
-
-```bash
-conda env update -n seagcnet -f environment.yml --prune
 ```
 
 ## Quick Start
