@@ -4,6 +4,10 @@ SE-AGCNet is an end-to-end framework for joint speech enhancement (SE) and autom
 
 - Audio demos: https://jinming00.github.io/SE-AGCNet/
 
+## Data Generation
+
+For SE-AGC data generation details, see `DATAGEN/README.md`.
+
 ## Overview
 
 Conventional audio pipelines often cascade SE and AGC as separate modules. Applying AGC before SE may amplify background noise, while applying SE before AGC may over-suppress quiet speech. SE-AGCNet jointly optimizes enhancement and loudness control so that quiet speech is preserved while output loudness remains consistent.
@@ -56,10 +60,6 @@ bash single_agc/infer.sh
 ```
 
 `INPUT_PATH` can be either a single `.wav` file or a directory containing `.wav` files.
-
-### Data Generation
-
-For SE-AGC data generation details, see `DATAGEN/README.md`.
 
 ## Runtime
 
