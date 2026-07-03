@@ -2,8 +2,7 @@
 
 SE-AGCNet is an end-to-end framework for joint speech enhancement (SE) and automatic gain control (AGC), designed for meeting scenarios with large loudness variation.
 
-- Project page and audio demos: https://jinming00.github.io/SE-AGCNet/
-- Repository: https://github.com/Jinming00/SE-AGCNet
+- Audio demos: https://jinming00.github.io/SE-AGCNet/
 
 ## Overview
 
@@ -21,6 +20,23 @@ This repository includes:
 The VoiceBankAGC dataset can be downloaded from:
 
 [VoiceBankAGC](https://drive.google.com/drive/folders/12naNULZmxpUD7x06fQmLgCZXuH6-qxgD?usp=sharing)
+
+## Environment Setup
+
+An exported snapshot of the current working environment is provided in [environment.yml](/home/ccds-jmzhang/SE-AGCNet/environment.yml).
+
+### Create the environment
+
+```bash
+conda env create -f environment.yml
+conda activate seagcnet
+```
+
+### Update an existing environment
+
+```bash
+conda env update -n seagcnet -f environment.yml --prune
+```
 
 ## Quick Start
 
