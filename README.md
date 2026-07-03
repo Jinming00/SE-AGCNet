@@ -11,15 +11,10 @@ Conventional audio pipelines often cascade SE and AGC as separate modules. Apply
 This repository includes:
 
 - `SE_AGCNet/`: model, training, inference, metrics, and validation code.
+- `single_agc/`: standalone AGC model training and inference code.
 - `DATAGEN/`: SE-AGC data simulation scripts.
 - `pyagc/`: Python implementation of time-frequency automatic gain control.
 - `docs/`: static demo page assets with audio examples.
-
-## Dataset
-
-The VoiceBankAGC dataset can be downloaded from:
-
-[VoiceBankAGC](https://drive.google.com/drive/folders/12naNULZmxpUD7x06fQmLgCZXuH6-qxgD?usp=sharing)
 
 ## Environment Setup
 
@@ -49,6 +44,18 @@ Update checkpoint and input paths in `inference.sh`, then run:
 ```
 
 Pre-trained checkpoints are currently stored under `SE_AGCNet/ckpt/`.
+
+### Standalone AGC
+
+The standalone AGC model is under `single_agc/`.
+
+For inference, update `INPUT_PATH`, `OUTPUT_PATH`, and `MODEL_PATH` in `single_agc/infer.sh`, then run:
+
+```bash
+bash single_agc/infer.sh
+```
+
+`INPUT_PATH` can be either a single `.wav` file or a directory containing `.wav` files.
 
 ### Data Generation
 

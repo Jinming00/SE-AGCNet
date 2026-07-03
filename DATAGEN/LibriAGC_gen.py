@@ -1,7 +1,7 @@
 """
 LibriAGC Dataset Generator
 
-Processes LibriTTS (train-clean-100/360, test-clean) to generate 
+Processes LibriTTS (train-clean-100 and test-clean by default; train-clean-360 kept as an optional commented source) to generate 
 multi-speaker audio combinations for AGC simulation.
 
 Combines 2-5 clips from different speakers into:
@@ -39,7 +39,9 @@ def batch_process_libritts_dataset(dataset_type='train', data_base_dir=None, out
     Scan LibriTTS dataset and group audio files by speaker.
     
     Args:
-        dataset_type: 'train' for train-clean-100/360, 'test' for test-clean
+        dataset_type: 'train' for train-clean-100 by default
+                      (train-clean-360 kept as an optional commented source),
+                      'test' for test-clean
         data_base_dir: Base directory containing LibriTTS dataset
         output_dir: Output directory (if None, uses data_base_dir/train_5_30 or test_5_30)
     
@@ -486,7 +488,7 @@ def generate_transcription_files(combinations, source_dir, target_dir):
 
 
 def main_train(data_base_dir=None, output_dir=None):
-    """Process training datasets (train-clean-100 and train-clean-360)."""
+    """Process training dataset (train-clean-100 by default; train-clean-360 optional)."""
     speaker_files, source_dir, target_dir, target_sr = batch_process_libritts_dataset('train', data_base_dir, output_dir)
     
     if not speaker_files:

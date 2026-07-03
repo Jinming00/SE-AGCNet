@@ -4,8 +4,9 @@ Generate multi-speaker audio combinations for AGC speech enhancement training.
 
 ## Datasets
 
-- **LibriTTS**: https://www.openslr.org/60/
+- **LibriTTS** (`train-clean-100` and `test-clean`): https://www.openslr.org/60/
 - **VoiceBank-Demand(use '28spk')**: https://datashare.ed.ac.uk/handle/10283/2791  
+- **VoiceBankAGC** (generated dataset release): https://drive.google.com/drive/folders/12naNULZmxpUD7x06fQmLgCZXuH6-qxgD?usp=sharing
 
 ## Requirements
 
@@ -89,4 +90,3 @@ Augmentation (15% each):
 ├── rttm/             # LibriTTS only
 └── metadata/
 ```
-
