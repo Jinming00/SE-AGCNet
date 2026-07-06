@@ -11,6 +11,7 @@ import time
 import argparse
 import json
 import random
+import socket
 import torch
 import torch.multiprocessing as mp
 from torch.utils.tensorboard import SummaryWriter
@@ -37,6 +38,35 @@ def tensor_to_float(value):
     if torch.is_tensor(value):
         return value.detach().item()
     return float(value)
+
+
+def find_free_tcp_port():
+    """Ask the OS for an available localhost TCP port."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("", 0))
+        return sock.getsockname()[1]
+
+
+def maybe_update_dist_url(h, a):
+    """Use a free local DDP port unless explicitly told to keep the config value."""
+    if h.num_gpus <= 1:
+        return
+
+    dist_url = h.dist_config.get('dist_url', '')
+    if not (
+        isinstance(dist_url, str)
+        and (dist_url.startswith('tcp://localhost:') or dist_url.startswith('tcp://127.0.0.1:'))
+    ):
+        return
+
+    if a.dist_port < 0:
+        print(f"Using configured DDP dist_url: {dist_url}")
+        return
+
+    host = dist_url.split('://', 1)[1].rsplit(':', 1)[0]
+    port = a.dist_port if a.dist_port > 0 else find_free_tcp_port()
+    h.dist_config['dist_url'] = f"tcp://{host}:{port}"
+    print(f"Using DDP dist_url: {h.dist_config['dist_url']}")
 
 
 def init_validation_dnsmos_scorer(a, device):
@@ -725,16 +755,18 @@ def main():
     parser.add_argument('--input_test_noisy_dir', default='/home/ccds-jmzhang/10samples/noisy')
     parser.add_argument('--checkpoint_path', default='/home/ccds-jmzhang/test')
     parser.add_argument('--config', default='/home/ccds-jmzhang/SE-AGCNet/SE_AGCNet/config.json')
+    parser.add_argument('--dist_port', default=0, type=int,
+                       help='DDP localhost port. 0 picks a free port, -1 keeps config dist_url')
     
-    parser.add_argument('--training_epochs', default=400, type=int)
+    parser.add_argument('--training_epochs', default=300, type=int)
     parser.add_argument('--stdout_interval', default=10, type=int)
-    parser.add_argument('--checkpoint_interval', default=1000, type=int)
+    parser.add_argument('--checkpoint_interval', default=10000, type=int)
     parser.add_argument('--summary_interval', default=100, type=int)
-    parser.add_argument('--validation_interval', default=1000, type=int)
+    parser.add_argument('--validation_interval', default=10000, type=int)
     parser.add_argument('--best_checkpoint_start_epoch', default=10, type=int)
-    parser.add_argument('--validation_ratio', default=0.0, type=float,
+    parser.add_argument('--validation_ratio', default=0.01, type=float,
                        help='Ratio of training files held out for primary validation. Set 0 to disable primary validation')
-    parser.add_argument('--extra_validation_enabled', default=1, type=int, choices=[0, 1],
+    parser.add_argument('--extra_validation_enabled', default=0, type=int, choices=[0, 1],
                        help='Set to 1 to run extra validation on input_test_clean_dir/input_test_noisy_dir')
     
     parser.add_argument('--staged_training', default=True, type=bool, 
@@ -772,7 +804,7 @@ def main():
     parser.add_argument('--validation_dnsmos_enabled', default=1, type=int, choices=[0, 1],
                        help='Set to 1 to compute DNSMOS OVRL on enhanced validation audio using GPU ONNX Runtime')
     parser.add_argument('--validation_dnsmos_path',
-                       default='/home/ccds-jmzhang/MP-SENet/dnsmos/DNSMOS',
+                       default='/home/ccds-jmzhang/SE-AGCNet/SE_AGCNet/assets/dnsmos',
                        help='Directory containing DNSMOS sig_bak_ovr.onnx')
     
     a = parser.parse_args()
@@ -783,6 +815,7 @@ def main():
     
     json_config = json.loads(data)
     h = AttrDict(json_config)
+    maybe_update_dist_url(h, a)
     build_env(a.config, 'config.json', a.checkpoint_path)
     
     # Set random seeds
