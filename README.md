@@ -74,6 +74,17 @@ Real-time factor (RTF) was measured on a single NVIDIA L40S GPU.
 
 The `pyagc/` directory contains the Python 3 implementation of time-frequency automatic gain control. See `pyagc/README.md` for details.
 
+## Acknowledgements
+
+This project benefited from the following open-source projects:
+
+- [pyagc](https://github.com/jorgehatccrma/pyagc)
+- [MP-SENet](https://github.com/yxlu-0102/MP-SENet)
+- [DNSMOS](https://github.com/microsoft/DNS-Challenge/tree/master/DNSMOS)
+
+This repository also includes a vendored DNSMOS ONNX model for local evaluation.
+Please refer to the original repositories for license, citation, and implementation details.
+
 ## Citation
 
 Citation information will be added after publication.
